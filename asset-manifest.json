@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/DPIS/static/css/main.71b07328.css",
-    "main.js": "/DPIS/static/js/main.8a6f10db.js",
+    "main.css": "/DPIS/static/css/main.52b6f207.css",
+    "main.js": "/DPIS/static/js/main.30e83bb5.js",
     "index.html": "/DPIS/index.html",
-    "main.71b07328.css.map": "/DPIS/static/css/main.71b07328.css.map",
-    "main.8a6f10db.js.map": "/DPIS/static/js/main.8a6f10db.js.map"
+    "main.52b6f207.css.map": "/DPIS/static/css/main.52b6f207.css.map",
+    "main.30e83bb5.js.map": "/DPIS/static/js/main.30e83bb5.js.map"
   },
   "entrypoints": [
-    "static/css/main.71b07328.css",
-    "static/js/main.8a6f10db.js"
+    "static/css/main.52b6f207.css",
+    "static/js/main.30e83bb5.js"
   ]
 }

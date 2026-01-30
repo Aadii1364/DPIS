@@ -25,27 +25,10 @@ const emergencyRoutes = require('./routes/emergency');
 const app = express();
 const server = http.createServer(app);
 
-// CORS allowed origins - must be defined before Socket.io
-const allowedOrigins = [
-  'https://aadii1364.github.io',
-  'http://localhost:3000'
-];
-
-// Socket.io setup
+// Socket.io setup - allow all origins for CORS
 const io = socketIo(server, {
   cors: {
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      const requestOrigin = origin.split('/').slice(0, 3).join('/');
-      if (allowedOrigins.some(a => requestOrigin === a.split('/').slice(0, 3).join('/'))) {
-        return callback(null, true);
-      }
-      if (process.env.NODE_ENV !== 'production') return callback(null, true);
-      if (requestOrigin.endsWith('.github.io') || requestOrigin.includes('.github.io:')) {
-        return callback(null, true);
-      }
-      callback(new Error('Not allowed by CORS'));
-    },
+    origin: true,
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -57,69 +40,8 @@ app.set('trust proxy', 1);
 // Middleware
 app.use(helmet());
 
-// If FRONTEND_URL is set, add to allowed origins
-if (process.env.FRONTEND_URL) {
-  try {
-    const url = new URL(process.env.FRONTEND_URL);
-    const origin = `${url.protocol}//${url.host}`;
-    if (!allowedOrigins.includes(origin)) {
-      allowedOrigins.push(origin);
-    }
-  } catch (e) {
-    // If FRONTEND_URL is not a valid URL, just use it as-is
-    if (!allowedOrigins.includes(process.env.FRONTEND_URL)) {
-      allowedOrigins.push(process.env.FRONTEND_URL);
-    }
-  }
-}
-
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Extract origin from the request (protocol + domain + port, no path)
-    const requestOrigin = origin.split('/').slice(0, 3).join('/');
-    
-    // Check if origin matches any allowed origin
-    if (allowedOrigins.some(allowed => {
-      const allowedOrigin = allowed.split('/').slice(0, 3).join('/');
-      return requestOrigin === allowedOrigin;
-    })) {
-      callback(null, true);
-    } else {
-      // For development, allow all origins
-      if (process.env.NODE_ENV !== 'production') {
-        callback(null, true);
-      } else {
-        // In production: allow setup tools and Render domains
-        // Allow null/file origins (browser console, local HTML files)
-        if (!origin || origin === 'null' || origin.startsWith('file://')) {
-          console.log(`Allowing origin for setup tool: ${origin || 'null'}`);
-          callback(null, true);
-        } 
-        // Allow any Render domain (for browser console from Render pages)
-        else if (origin.includes('onrender.com') || origin.includes('render.com')) {
-          console.log(`Allowing Render origin: ${origin}`);
-          callback(null, true);
-        } 
-        // Allow the backend's own domain (same origin requests)
-        else if (origin.includes('dpis-backend.onrender.com')) {
-          console.log(`Allowing same-domain origin: ${origin}`);
-          callback(null, true);
-        }
-        // Allow GitHub Pages (any username.github.io)
-        else if (origin.endsWith('.github.io') || origin.includes('.github.io:')) {
-          console.log(`Allowing GitHub Pages origin: ${origin}`);
-          callback(null, true);
-        }
-        else {
-          console.warn(`CORS blocked origin: ${origin}`);
-          callback(new Error('Not allowed by CORS'));
-        }
-      }
-    }
-  },
+  origin: true,
   credentials: true
 }));
 app.use(express.json());

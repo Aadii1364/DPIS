@@ -25,24 +25,26 @@ const emergencyRoutes = require('./routes/emergency');
 const app = express();
 const server = http.createServer(app);
 
+// CORS allowed origins - must be defined before Socket.io
+const allowedOrigins = [
+  'https://aadii1364.github.io',
+  'http://localhost:3000'
+];
+
 // Socket.io setup
 const io = socketIo(server, {
   cors: {
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
-      
       const requestOrigin = origin.split('/').slice(0, 3).join('/');
-      
-      if (allowedOrigins.some(allowed => {
-        const allowedOrigin = allowed.split('/').slice(0, 3).join('/');
-        return requestOrigin === allowedOrigin;
-      })) {
-        callback(null, true);
-      } else if (process.env.NODE_ENV !== 'production') {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
+      if (allowedOrigins.some(a => requestOrigin === a.split('/').slice(0, 3).join('/'))) {
+        return callback(null, true);
       }
+      if (process.env.NODE_ENV !== 'production') return callback(null, true);
+      if (requestOrigin.endsWith('.github.io') || requestOrigin.includes('.github.io:')) {
+        return callback(null, true);
+      }
+      callback(new Error('Not allowed by CORS'));
     },
     methods: ["GET", "POST"],
     credentials: true
@@ -55,15 +57,7 @@ app.set('trust proxy', 1);
 // Middleware
 app.use(helmet());
 
-// CORS configuration - allow GitHub Pages and localhost
-// Note: CORS origin is protocol + domain + port (no path)
-// So 'https://dvrkrvy.github.io' matches, not 'https://dvrkrvy.github.io/DPIS'
-const allowedOrigins = [
-  'https://aadii1364.github.io',
-  'http://localhost:3000'
-];
-
-// If FRONTEND_URL is set, extract just the origin (protocol + domain + port)
+// If FRONTEND_URL is set, add to allowed origins
 if (process.env.FRONTEND_URL) {
   try {
     const url = new URL(process.env.FRONTEND_URL);
@@ -112,6 +106,11 @@ app.use(cors({
         // Allow the backend's own domain (same origin requests)
         else if (origin.includes('dpis-backend.onrender.com')) {
           console.log(`Allowing same-domain origin: ${origin}`);
+          callback(null, true);
+        }
+        // Allow GitHub Pages (any username.github.io)
+        else if (origin.endsWith('.github.io') || origin.includes('.github.io:')) {
+          console.log(`Allowing GitHub Pages origin: ${origin}`);
           callback(null, true);
         }
         else {

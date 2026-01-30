@@ -59,7 +59,7 @@ app.use(helmet());
 // Note: CORS origin is protocol + domain + port (no path)
 // So 'https://dvrkrvy.github.io' matches, not 'https://dvrkrvy.github.io/DPIS'
 const allowedOrigins = [
-  'https://ragexuser.github.io',
+  'https://aadii1364.github.io',
   'http://localhost:3000'
 ];
 

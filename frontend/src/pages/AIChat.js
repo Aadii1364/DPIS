@@ -46,9 +46,12 @@ const AIChat = () => {
     setLoading(true);
 
     try {
+      const conversationHistory = messages
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .map(m => ({ role: m.role, content: m.content }));
       const response = await api.post(
         '/api/ai/chat',
-        { message: userMessage },
+        { message: userMessage, conversationHistory },
         {
           headers: { Authorization: `Bearer ${token}` }
         }

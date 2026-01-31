@@ -289,11 +289,11 @@ function markClientFailed(client, error) {
 
 // OpenAI removed - using Gemini only
 
-// Risk keywords that trigger emergency protocols
+// Risk keywords - only explicit self-harm or suicide (not casual phrases like "give up")
 const RISK_KEYWORDS = [
-  'suicide', 'suicidal', 'kill myself', 'end my life', 'want to die',
-  'self harm', 'cutting', 'hurting myself', 'harm myself',
-  'no reason to live', 'better off dead', 'give up'
+  'suicide', 'suicidal', 'kill myself', 'end my life', 'want to die', 'want to die.',
+  'self harm', 'self-harm', 'cutting myself', 'hurting myself', 'harm myself',
+  'planning to end', 'thinking of suicide', 'going to kill myself'
 ];
 
 // Check for risk keywords in text
@@ -335,8 +335,8 @@ async function callGeminiAPI(model, messageWithContext, chatHistory, timeoutMs =
       
       const result = await chat.sendMessage(messageWithContext, {
         generationConfig: {
-          maxOutputTokens: 150, // Natural, concise responses
-          temperature: 0.7, // Balanced naturalness
+          maxOutputTokens: 300,
+          temperature: 0.8,
         }
       });
       
@@ -428,10 +428,12 @@ These services are available 24/7 and are here to help.`,
       });
     }
 
-    // Build natural, supportive context prompt
-    let contextPrompt = 'You are a supportive, empathetic AI assistant for a mental health platform. ';
-    contextPrompt += 'Respond naturally and conversationally, like a caring friend who listens well. ';
-    contextPrompt += 'Keep responses brief and genuine. If users express serious concerns about self-harm or suicide, encourage them to seek professional help immediately. ';
+    // Build context prompt - happy, jolly, encouraging, empathetic; cater to requests
+    let contextPrompt = 'You are a warm, cheerful, and encouraging AI support buddy for students. ';
+    contextPrompt += 'Your mood is always positive, jolly, and uplifting. Be genuinely empathetic and caring. ';
+    contextPrompt += 'Actually answer the user\'s questions and respond to what they ask - give helpful, relevant replies. ';
+    contextPrompt += 'Keep responses conversational (2-4 sentences). Be supportive and validating. ';
+    contextPrompt += 'IMPORTANT: Only mention helpline numbers (988, Crisis Text Line) if the user explicitly mentions self-harm, suicide, or wanting to hurt themselves. For normal stress, sadness, anxiety, or general questions - just chat supportively. Do NOT default to helpline numbers for everyday concerns. ';
 
     // Get screening results asynchronously
     const screeningPromise = pool.query(
